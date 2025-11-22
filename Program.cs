@@ -33,4 +33,11 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+// Configurar para escuchar en cualquier IP (0.0.0.0)
+var urls = Environment.GetEnvironmentVariable("ASPNETCORE_URLS");
+if (string.IsNullOrEmpty(urls))
+{
+    app.Urls.Add("http://0.0.0.0:5181");
+}
+
 app.Run();
