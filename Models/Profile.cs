@@ -9,7 +9,9 @@ namespace Api.Models
     {
         [Key]
         [JsonPropertyName("id")]
-        public Guid Id { get; set; }
+        // CLAVE: "WhenWritingNull". Enviamos null desde C#, Supabase genera el UUID.
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public Guid? Id { get; set; }
 
         [JsonPropertyName("full_name")]
         public string FullName { get; set; } = string.Empty;
@@ -26,12 +28,9 @@ namespace Api.Models
         [JsonPropertyName("is_available_for_change")]
         public bool IsAvailableForChange { get; set; }
 
-        [JsonPropertyName("created_at")]
-        public DateTimeOffset? CreatedAt { get; set; }
-
-        [JsonPropertyName("updated_at")]
-        public DateTimeOffset? UpdatedAt { get; set; }
-
+        // --- SKILLS ---
+        [JsonPropertyName("profile_skills")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public List<ProfileSkill>? ProfileSkills { get; set; }
     }
 }

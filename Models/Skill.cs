@@ -1,13 +1,13 @@
-using System.Text.Json.Serialization;
+    using System.Text.Json.Serialization;
 
-namespace Api.Models
-{
-    public class Skill
+    namespace Api.Models
     {
-        [JsonPropertyName("id")]
-        public int Id { get; set; }
+        public class Skill
+        {
+            [JsonPropertyName("id")]
+            public int Id { get; set; }
 
-        [JsonPropertyName("name")]
-        public string Name { get; set; } = string.Empty;
+            [JsonPropertyName("name")]
+            public string Name { get; set; } = string.Empty;
+        }
     }
-}

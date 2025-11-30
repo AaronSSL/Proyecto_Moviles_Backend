@@ -1,12 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
+using Newtonsoft.Json; 
 
 namespace Api.Models
 {
     public class Vacancy
     {
+        // ARREGLADO: Usamos el nombre completo para evitar el conflicto
         [JsonPropertyName("id")]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] 
         public int Id { get; set; }
 
         [JsonPropertyName("title")]
@@ -18,15 +21,12 @@ namespace Api.Models
         [JsonPropertyName("department_id")]
         public int? DepartmentId { get; set; }
 
-        [JsonPropertyName("created_by")]
-        public Guid? CreatedBy { get; set; }
-
         [JsonPropertyName("status")]
         public string? Status { get; set; }
 
-        [JsonPropertyName("created_at")]
-        public DateTimeOffset? CreatedAt { get; set; }
-
+        // ARREGLADO: Nombre completo aquí también
+        [JsonPropertyName("skills")]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public List<VacancySkill>? VacancySkills { get; set; }
     }
 }
