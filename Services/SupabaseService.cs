@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using Microsoft.Extensions.Configuration; // Asegúrate de tener este using
 using Supabase;
 
 namespace Api.Services
@@ -12,6 +13,14 @@ namespace Api.Services
     public class SupabaseService
     {
         public Client Client { get; private set; }
+        private readonly HttpClient _httpClient;
+        private readonly string _baseUrl;
+        private readonly string? _apiKey;
+
+        private static readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        };
 
         public SupabaseService(IConfiguration config)
         {
@@ -19,7 +28,7 @@ namespace Api.Services
 
             var url = config["Supabase:Url"];
             if (string.IsNullOrWhiteSpace(url))
-                throw new ArgumentException("Configuration value 'Supabase:Url' is required and was not found.", nameof(config));
+                throw new ArgumentException("Configuration value 'Supabase:Url' is required.", nameof(config));
 
             var key = config["Supabase:Key"];
 
@@ -28,8 +37,9 @@ namespace Api.Services
                 AutoConnectRealtime = true
             });
 
-            Client.InitializeAsync().GetAwaiter().GetResult();
-            // Prepare an HttpClient for REST calls to PostgREST
+            // Inicialización asíncrona (fuego y olvido en constructor no es ideal, pero funcional para este caso)
+            Client.InitializeAsync().ConfigureAwait(false);
+
             _baseUrl = url.TrimEnd('/');
             _apiKey = key;
             _httpClient = new HttpClient
@@ -45,15 +55,6 @@ namespace Api.Services
             _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
 
-        private readonly HttpClient _httpClient;
-        private readonly string _baseUrl;
-        private readonly string? _apiKey;
-
-        private static readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true
-        };
-
         public async Task<List<T>> GetAllAsync<T>(string table)
         {
             var resp = await _httpClient.GetAsync($"/rest/v1/{table}?select=*");
@@ -64,7 +65,6 @@ namespace Api.Services
 
         public async Task<T?> GetByIdAsync<T>(string table, string keyColumn, string keyValue)
         {
-            // keyValue should be already URL-encoded if needed
             var resp = await _httpClient.GetAsync($"/rest/v1/{table}?{keyColumn}=eq.{Uri.EscapeDataString(keyValue)}&select=*");
             resp.EnsureSuccessStatusCode();
             var json = await resp.Content.ReadAsStringAsync();
@@ -72,6 +72,7 @@ namespace Api.Services
             return list != null && list.Count > 0 ? list[0] : default;
         }
 
+        // --- MÉTODO MODIFICADO PARA DEBUG ---
         public async Task<T?> CreateAsync<T>(string table, T item)
         {
             var body = JsonSerializer.Serialize(item);
@@ -82,7 +83,24 @@ namespace Api.Services
             request.Headers.Add("Prefer", "return=representation");
 
             var resp = await _httpClient.SendAsync(request);
-            resp.EnsureSuccessStatusCode();
+
+            if (!resp.IsSuccessStatusCode)
+            {
+                // AQUÍ CAPTURAMOS EL ERROR REAL
+                var errorContent = await resp.Content.ReadAsStringAsync();
+                
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("\n========================================");
+                Console.WriteLine($"🔴 ERROR CRÍTICO DE SUPABASE ({resp.StatusCode}):");
+                Console.WriteLine(errorContent);
+                Console.WriteLine("----------------------------------------");
+                Console.WriteLine($"JSON ENVIADO: {body}");
+                Console.WriteLine("========================================\n");
+                Console.ResetColor();
+
+                throw new HttpRequestException($"Supabase Error: {resp.StatusCode} - {errorContent}");
+            }
+
             var json = await resp.Content.ReadAsStringAsync();
             var list = JsonSerializer.Deserialize<List<T>>(json, _jsonOptions);
             return list != null && list.Count > 0 ? list[0] : default;
@@ -98,7 +116,14 @@ namespace Api.Services
             request.Headers.Add("Prefer", "return=representation");
 
             var resp = await _httpClient.SendAsync(request);
-            resp.EnsureSuccessStatusCode();
+            
+             if (!resp.IsSuccessStatusCode)
+            {
+                var errorContent = await resp.Content.ReadAsStringAsync();
+                Console.WriteLine($"🔴 ERROR UPDATE: {errorContent}");
+                throw new HttpRequestException($"Supabase Update Error: {errorContent}");
+            }
+
             var json = await resp.Content.ReadAsStringAsync();
             var list = JsonSerializer.Deserialize<List<T>>(json, _jsonOptions);
             return list != null && list.Count > 0 ? list[0] : default;

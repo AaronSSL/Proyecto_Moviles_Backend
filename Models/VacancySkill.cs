@@ -9,5 +9,9 @@ namespace Api.Models
 
         [JsonPropertyName("skill_id")]
         public int SkillId { get; set; }
+
+        // --- AGREGAMOS LA PROPIEDAD FALTANTE ---
+        [JsonPropertyName("grado")]
+        public int Grado { get; set; }
     }
 }

@@ -1261,19 +1261,24 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\aaron\\.nuget\\packages\\": {}
+    "C:\\Users\\GUSTAVO\\.nuget\\packages\\": {},
+    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\aaron\\OneDrive\\Escritorio\\UNIVERSIDAD ESAN CLASES\\DESARROLLO MOVIL\\PROYECTO\\BackEnd\\Api\\Api.csproj",
+      "projectUniqueName": "D:\\Proyecto Moviles\\Backend\\Proyecto_Moviles_Backend\\Api.csproj",
       "projectName": "Api",
-      "projectPath": "C:\\Users\\aaron\\OneDrive\\Escritorio\\UNIVERSIDAD ESAN CLASES\\DESARROLLO MOVIL\\PROYECTO\\BackEnd\\Api\\Api.csproj",
-      "packagesPath": "C:\\Users\\aaron\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\aaron\\OneDrive\\Escritorio\\UNIVERSIDAD ESAN CLASES\\DESARROLLO MOVIL\\PROYECTO\\BackEnd\\Api\\obj\\",
+      "projectPath": "D:\\Proyecto Moviles\\Backend\\Proyecto_Moviles_Backend\\Api.csproj",
+      "packagesPath": "C:\\Users\\GUSTAVO\\.nuget\\packages\\",
+      "outputPath": "D:\\Proyecto Moviles\\Backend\\Proyecto_Moviles_Backend\\obj\\",
       "projectStyle": "PackageReference",
+      "fallbackFolders": [
+        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+      ],
       "configFilePaths": [
-        "C:\\Users\\aaron\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\GUSTAVO\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
@@ -1298,7 +1303,8 @@
         "enableAudit": "true",
         "auditLevel": "low",
         "auditMode": "direct"
-      }
+      },
+      "SdkAnalysisLevel": "9.0.300"
     },
     "frameworks": {
       "net8.0": {
@@ -1336,7 +1342,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.200/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.305/PortableRuntimeIdentifierGraph.json"
       }
     }
   }
