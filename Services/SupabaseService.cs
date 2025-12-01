@@ -82,32 +82,94 @@ namespace Api.Services
             request.Headers.Add("Prefer", "return=representation");
 
             var resp = await _httpClient.SendAsync(request);
-            resp.EnsureSuccessStatusCode();
-            var json = await resp.Content.ReadAsStringAsync();
-            var list = JsonSerializer.Deserialize<List<T>>(json, _jsonOptions);
-            return list != null && list.Count > 0 ? list[0] : default;
-        }
 
-        public async Task<T?> UpdateAsync<T>(string table, string keyColumn, string keyValue, T item)
-        {
-            var body = JsonSerializer.Serialize(item);
-            var request = new HttpRequestMessage(new HttpMethod("PATCH"), $"/rest/v1/{table}?{keyColumn}=eq.{Uri.EscapeDataString(keyValue)}")
+            // --- DETECTOR DE ERRORES (Igual que en Update) ---
+            if (!resp.IsSuccessStatusCode)
             {
-                Content = new StringContent(body, Encoding.UTF8, "application/json")
-            };
-            request.Headers.Add("Prefer", "return=representation");
+                var errorContent = await resp.Content.ReadAsStringAsync();
+                
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("\n========================================");
+                Console.WriteLine($"🔴 ERROR CREATE (409 CONFLICTO?):");
+                Console.WriteLine($"Status: {resp.StatusCode}");
+                Console.WriteLine($"Mensaje: {errorContent}");
+                Console.WriteLine($"JSON: {body}");
+                Console.WriteLine("========================================\n");
+                Console.ResetColor();
 
-            var resp = await _httpClient.SendAsync(request);
-            resp.EnsureSuccessStatusCode();
+                throw new HttpRequestException($"Supabase Create Error: {errorContent}");
+            }
+            // -------------------------------------------------
+
             var json = await resp.Content.ReadAsStringAsync();
             var list = JsonSerializer.Deserialize<List<T>>(json, _jsonOptions);
             return list != null && list.Count > 0 ? list[0] : default;
         }
+
+    public async Task<T?> UpdateAsync<T>(string table, string keyColumn, string keyValue, T item)
+    {
+        var body = JsonSerializer.Serialize(item);
+        
+        // Usamos PATCH, que es lo estándar para actualizar parcialmente en Supabase
+        var request = new HttpRequestMessage(new HttpMethod("PATCH"), $"/rest/v1/{table}?{keyColumn}=eq.{Uri.EscapeDataString(keyValue)}")
+        {
+            Content = new StringContent(body, Encoding.UTF8, "application/json")
+        };
+        request.Headers.Add("Prefer", "return=representation");
+
+        var resp = await _httpClient.SendAsync(request);
+
+        // --- DETECTOR DE ERRORES ---
+        if (!resp.IsSuccessStatusCode)
+        {
+            var errorContent = await resp.Content.ReadAsStringAsync();
+            
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine("\n========================================");
+            Console.WriteLine($"🔴 ERROR CRÍTICO AL ACTUALIZAR (UPDATE):");
+            Console.WriteLine($"Status Code: {resp.StatusCode}");
+            Console.WriteLine($"Mensaje de Supabase: {errorContent}");
+            Console.WriteLine($"Datos enviados: {body}");
+            Console.WriteLine("========================================\n");
+            Console.ResetColor();
+
+            // Lanzamos el error con el detalle para que no se pierda
+            throw new HttpRequestException($"Supabase Update Error: {errorContent}");
+        }
+        // ---------------------------
+
+        var json = await resp.Content.ReadAsStringAsync();
+        var list = JsonSerializer.Deserialize<List<T>>(json, _jsonOptions);
+        return list != null && list.Count > 0 ? list[0] : default;
+    }
 
         public async Task DeleteAsync(string table, string keyColumn, string keyValue)
         {
             var resp = await _httpClient.DeleteAsync($"/rest/v1/{table}?{keyColumn}=eq.{Uri.EscapeDataString(keyValue)}");
             resp.EnsureSuccessStatusCode();
         }
+
+        // Agrega esto en SupabaseService.cs
+
+    // Método especial para borrar con DOBLE condición (Ej: profile_id AND skill_id)
+    public async Task DeleteCompositeAsync(string table, string col1, string val1, string col2, string val2)
+    {
+        // Construimos la URL con DOS filtros: ?col1=eq.val1 & col2=eq.val2
+        var url = $"/rest/v1/{table}?{col1}=eq.{Uri.EscapeDataString(val1)}&{col2}=eq.{Uri.EscapeDataString(val2)}";
+
+        var resp = await _httpClient.DeleteAsync(url);
+
+        // Detector de errores (Mismo estilo que los otros)
+        if (!resp.IsSuccessStatusCode)
+        {
+            var errorContent = await resp.Content.ReadAsStringAsync();
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine($"🔴 ERROR DELETE COMPOSITE: {errorContent}");
+            Console.ResetColor();
+            throw new HttpRequestException($"Supabase Delete Error: {errorContent}");
+        }
+    }
+
+
     }
 }
