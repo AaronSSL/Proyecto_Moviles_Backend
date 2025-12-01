@@ -33,10 +33,17 @@ namespace Api.Controllers
         }
 
         [HttpDelete]
-        public async Task<IActionResult> Remove([FromBody] ProfileSkill profileSkill)
+        public async Task<IActionResult> Delete([FromQuery] Guid profile_id, [FromQuery] int skill_id)
         {
-            // Delete by composite key (profile_id and skill_id)
-            await _supabase.DeleteAsync("profile_skills", "profile_id", profileSkill.ProfileId.ToString() + "&skill_id=eq." + profileSkill.SkillId);
+            // Usamos el nuevo método que acepta DOS llaves
+            await _supabase.DeleteCompositeAsync(
+                "profile_skills",       // Nombre de la tabla
+                "profile_id",           // Primera columna llave
+                profile_id.ToString(),  // Primer valor
+                "skill_id",             // Segunda columna llave
+                skill_id.ToString()     // Segundo valor
+            );
+
             return NoContent();
         }
     }
